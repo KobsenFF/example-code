@@ -1,0 +1,113 @@
+﻿@using System.Collections;
+
+@{
+    ViewBag.Title = Strings.CallServer_List;
+    ViewBag.Controller = "CallServer";
+    ViewBag.StorageVersion = 1;
+}
+
+<hr/><h4>@Strings.CallServer_List</h4>
+
+@(Html.Kendo().Grid<CallServerViewModel>()
+    .Name("Grid")
+    .Columns(columns =>
+    {
+        columns.Bound(m => m.Id).Width(100);
+        columns.Bound(m => m.Name).Width(150);
+        columns.Bound(m => m.Code).Width(100);
+        columns.Bound(m => m.URL);
+        columns.Bound(m => m.IsActive).ClientTemplate($"#= IsActive ? '{Strings.Common_Yes}' : '{Strings.Common_No}' #").Hidden();
+        columns.Bound(m => m.Lines).Width("30%");
+        columns.Command(command =>
+        {
+            command.Edit().Text(" ").UpdateText(Strings.Common_Grid_Save).CancelText(Strings.Common_Grid_Cancel);
+            command.Destroy().Text(" ");
+            command.Custom("history").Text(" ").Click("showHistory");
+        }).Width(160);
+    })
+    .ToolBar(toolbar =>
+    {
+        toolbar.Create().Text($"{Strings.Common_Grid_AddNewRecord}...");
+        toolbar.Excel();
+        toolbar.Pdf().Text(Strings.Common_Grid_ExportToPdf);
+        toolbar.Custom().Name("RemoveGridOptions").Text("").HtmlAttributes(new { style = "float: right; width: 40px;", onclick = "onRemoveGridOptions()", title = Strings.Common_Grid_ResetGridOptions });
+        toolbar.Custom().Name("SaveGridOptions").Text("").HtmlAttributes(new { style = "float: right; width: 40px;", onclick = "onSaveGridOptions()", title = Strings.Common_Grid_SaveGridOptions });
+    })
+
+    .Excel(excel => excel
+        .AllPages(true)
+        .FileName(ViewBag.Title + ".xlsx")
+        .Filterable(true)
+        .ForceProxy(true)
+        .ProxyURL(Url.Action("Excel_Export_Save", ViewBag.Controller))
+        )
+
+    .Pdf(pdf => pdf
+        .AvoidLinks()
+        .PaperSize("A4")
+        .Margin("2cm", "1cm", "1cm", "1cm")
+        .Scale(0.6)
+        .Landscape()
+        .FileName(ViewBag.Title + ".pdf")
+        .ForceProxy(true)
+        .ProxyURL(Url.Action("Pdf_Export_Save", ViewBag.Controller))
+        )
+
+    .Editable(editable => editable.Mode(GridEditMode.PopUp).Window(window => window.Width(480)))
+    .Pageable(pageable => pageable.Refresh(true).PageSizes(new int[] { 10, 25, 50, 100 }).Messages(message => message.Display(Strings.Common_Grid_DisplayOf)))
+    .Sortable(sortable => sortable.SortMode(GridSortMode.MultipleColumn))
+    .Filterable()
+    .Resizable(resizeable => resizeable.Columns(true))
+    //.AutoBind(false)
+    .Scrollable(scroll => scroll.Height("auto"))
+    .ColumnMenu()
+    .Reorderable(reorderable => reorderable.Columns(true))
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .PageSize(25)
+        .Model(model => model.Id(p => p.Id))
+        .Create(create => create.Action("Create", ViewBag.Controller))
+        .Read(read => read.Action("Read", ViewBag.Controller))
+        .Update(update => update.Action("Update", ViewBag.Controller))
+        .Destroy(destroy => destroy.Action("Destroy", ViewBag.Controller))
+        .Sort(sort => sort.Add(s => s.Code))
+        .Events(e => e.Error("grid_error_handler"))
+    )
+    .Events(events => events.DataBound("onDataBound").Save("onSave").Cancel("onCancel"))
+)
+
+<style>
+    .rowColor_0 {
+        background-color: #F9C2C2;
+    }
+
+    .rowColor_1 {
+        background-color: #D0FBBF;
+    }
+</style>
+
+<script>
+    function onDataBound(e) {
+        onBaseDataBound(e);
+
+        // раскрашиваем строки
+        var grid = $("#Grid").data("kendoGrid");
+        var gridData = grid.dataSource.view();
+
+        for (var i = 0; i < gridData.length; i++) {
+            //get the item uid
+            var currentUid = gridData[i].uid;
+            var currenRow = grid.table.find("tr[data-uid='" + currentUid + "']");
+            $(currenRow).addClass("rowColor_" + (gridData[i].IsActive ? 1 : 0));
+        }
+    }
+
+    function onSave(e) {
+    }
+
+    function onCancel(e) {
+        this.dataSource.read();
+    }
+</script>
+
+@Html.Partial("_HistoryPartial")

@@ -1,0 +1,33 @@
+﻿@model CallServerViewModel
+
+<div class="k-edit-label">
+    @Html.LabelFor(model => model.Name)
+</div>
+<div class="k-edit-field">
+    @(Html.Kendo().TextBoxFor(model => model.Name)
+        .HtmlAttributes(new { style = "width: 100%" })
+    )
+</div>
+
+<div class="k-edit-label">
+    @Html.LabelFor(model => model.Code)
+</div>
+<div class="k-edit-field">
+    @(Html.Kendo().TextBoxFor(model => model.Code)
+        //.HtmlAttributes(new { style = "width: 100%" })
+    )
+</div>
+
+<div class="k-edit-label">
+    @Html.LabelFor(model => model.URL)
+</div>
+<div class="k-edit-field">
+    @(Html.Kendo().TextBoxFor(model => model.URL)
+        .HtmlAttributes(new { style = "width: 100%" })
+    )
+</div>
+
+<div class="k-edit-label"></div>
+<div class="k-edit-field">
+    @Html.Kendo().CheckBoxFor(model => model.IsActive)
+</div>
